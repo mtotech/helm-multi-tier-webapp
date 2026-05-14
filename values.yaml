@@ -1,0 +1,30 @@
+frontend:
+  replicaCount: 2
+
+  image:
+    repository: nginx
+    tag: latest
+
+backend:
+  replicaCount: 2
+
+  image:
+    repository: httpd
+    tag: latest
+
+  database:
+    host: webapp-chart-postgresql
+    port: 5432
+    name: appdb
+
+postgresql:
+  enabled: true
+
+  auth:
+    username: appuser
+    password: secretpassword
+    database: appdb
+
+  primary:
+    persistence:
+      enabled: false

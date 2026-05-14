@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+
+metadata:
+  name: db-init-job
+
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded
+
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+
+      initContainers:
+        - name: wait-for-db
+          image: postgres:15-alpine
+
+          command:
+            - sh
+            - -c
+            - until pg_isready -h webapp-chart-postgresql; do sleep 2; done
+
+      containers:
+        - name: db-init
+
+          image: postgres:15-alpine
+
+          env:
+            - name: PGPASSWORD
+              value: secretpassword
+
+          command:
+            - sh
+            - -c
+            - |
+              psql \
+              -h webapp-chart-postgresql \
+              -U appuser \
+              -d appdb \
+              -c "CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT);"
